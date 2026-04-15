@@ -31,6 +31,7 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
+		DueDate: req.DueDate,
 	})
 	if err != nil {
 		writeUsecaseError(w, err)
