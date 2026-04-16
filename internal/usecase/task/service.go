@@ -28,9 +28,13 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*taskdomain.Ta
 	}
 
 	model := &taskdomain.Task{
-		Title:       normalized.Title,
-		Description: normalized.Description,
-		Status:      normalized.Status,
+		Title:            normalized.Title,
+		Description:      normalized.Description,
+		Status:           normalized.Status,
+		DueDate:          normalized.DueDate,
+		IsRecurrence:     normalized.IsRecurrence,
+		RecurrenceType:   normalized.RecurrenceType,
+		RecurrenceConfig: normalized.RecurrenceConfig,
 	}
 	now := s.now()
 	model.CreatedAt = now
@@ -63,11 +67,15 @@ func (s *Service) Update(ctx context.Context, id int64, input UpdateInput) (*tas
 	}
 
 	model := &taskdomain.Task{
-		ID:          id,
-		Title:       normalized.Title,
-		Description: normalized.Description,
-		Status:      normalized.Status,
-		UpdatedAt:   s.now(),
+		ID:               id,
+		Title:            normalized.Title,
+		Description:      normalized.Description,
+		Status:           normalized.Status,
+		DueDate:          normalized.DueDate,
+		IsRecurrence:     normalized.IsRecurrence,
+		RecurrenceType:   normalized.RecurrenceType,
+		RecurrenceConfig: normalized.RecurrenceConfig,
+		UpdatedAt:        s.now(),
 	}
 
 	updated, err := s.repo.Update(ctx, model)
@@ -106,6 +114,20 @@ func validateCreateInput(input CreateInput) (CreateInput, error) {
 		return CreateInput{}, fmt.Errorf("%w: invalid status", ErrInvalidInput)
 	}
 
+	if input.DueDate == nil {
+		defaultDue := time.Now()
+		input.DueDate = &defaultDue
+	}
+
+	if input.IsRecurrence {
+		if input.RecurrenceType == nil || input.RecurrenceConfig == nil {
+			return CreateInput{}, fmt.Errorf("%w: recurrence_type and recurrence_config are required for recurrence", ErrInvalidInput)
+		}
+		if !input.RecurrenceConfig.Valid(*input.RecurrenceType) {
+			return CreateInput{}, fmt.Errorf("%w: invalid recurrence config", ErrInvalidInput)
+		}
+	}
+
 	return input, nil
 }
 
@@ -119,6 +141,20 @@ func validateUpdateInput(input UpdateInput) (UpdateInput, error) {
 
 	if !input.Status.Valid() {
 		return UpdateInput{}, fmt.Errorf("%w: invalid status", ErrInvalidInput)
+	}
+
+	if input.DueDate == nil {
+		defaultDue := time.Now()
+		input.DueDate = &defaultDue
+	}
+
+	if input.IsRecurrence {
+		if input.RecurrenceType == nil || input.RecurrenceConfig == nil {
+			return UpdateInput{}, fmt.Errorf("%w: recurrence_type and recurrence_config are required for recurrence", ErrInvalidInput)
+		}
+		if !input.RecurrenceConfig.Valid(*input.RecurrenceType) {
+			return UpdateInput{}, fmt.Errorf("%w: invalid recurrence config", ErrInvalidInput)
+		}
 	}
 
 	return input, nil

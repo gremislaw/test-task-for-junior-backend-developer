@@ -24,21 +24,21 @@ type Usecase interface {
 }
 
 type CreateInput struct {
-	Title       string
-	Description string
-	Status      taskdomain.Status
-	DueDate     time.Time
-	IsRecurrence       *bool
-	RecurrenceType     *taskdomain.RecurrenceType
-	RecurrenceConfig   *taskdomain.RecurrenceConfig
+	Title            string
+	Description      string
+	Status           taskdomain.Status
+	DueDate          *time.Time
+	IsRecurrence     bool
+	RecurrenceType   *taskdomain.RecurrenceType
+	RecurrenceConfig *taskdomain.RecurrenceConfig
 }
 
 type UpdateInput struct {
-	Title       string
-	Description string
-	Status      taskdomain.Status
-	DueDate            *time.Time
-	IsRecurrence       *bool
-  RecurrenceType     *taskdomain.RecurrenceType
-  RecurrenceConfig   *taskdomain.RecurrenceConfig
+	Title            string
+	Description      string
+	Status           taskdomain.Status
+	DueDate          *time.Time
+	IsRecurrence     bool
+	RecurrenceType   *taskdomain.RecurrenceType
+	RecurrenceConfig *taskdomain.RecurrenceConfig
 }

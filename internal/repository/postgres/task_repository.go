@@ -166,7 +166,7 @@ func scanTask(scanner taskScanner) (*taskdomain.Task, error) {
 	var (
 		task   taskdomain.Task
 		status string
-		rt string
+		rt     string
 	)
 
 	if err := scanner.Scan(
