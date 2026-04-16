@@ -12,7 +12,7 @@ type taskMutationDTO struct {
 	Status           taskdomain.Status            `json:"status"`
 	DueDate          *time.Time                   `json:"due_date"`
 	IsRecurrence     bool                         `json:"is_recurrence,omitempty"`
-	RecurrenceType   *taskdomain.RecurrenceType   `json:"recurrence_type,omitempty"`
+	RecurrenceType   taskdomain.RecurrenceType    `json:"recurrence_type,omitempty"`
 	RecurrenceConfig *taskdomain.RecurrenceConfig `json:"recurrence_config,omitempty"`
 }
 
@@ -26,7 +26,7 @@ type taskDTO struct {
 	UpdatedAt          time.Time                    `json:"updated_at"`
 	IsRecurrence       bool                         `json:"is_recurrence"`
 	RecurrenceParentID *int64                       `json:"recurrence_parent_id,omitempty"`
-	RecurrenceType     *taskdomain.RecurrenceType   `json:"recurrence_type,omitempty"`
+	RecurrenceType     taskdomain.RecurrenceType    `json:"recurrence_type,omitempty"`
 	RecurrenceConfig   *taskdomain.RecurrenceConfig `json:"recurrence_config,omitempty"`
 }
 

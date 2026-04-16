@@ -29,7 +29,7 @@ type CreateInput struct {
 	Status           taskdomain.Status
 	DueDate          *time.Time
 	IsRecurrence     bool
-	RecurrenceType   *taskdomain.RecurrenceType
+	RecurrenceType   taskdomain.RecurrenceType
 	RecurrenceConfig *taskdomain.RecurrenceConfig
 }
 
@@ -39,6 +39,6 @@ type UpdateInput struct {
 	Status           taskdomain.Status
 	DueDate          *time.Time
 	IsRecurrence     bool
-	RecurrenceType   *taskdomain.RecurrenceType
+	RecurrenceType   taskdomain.RecurrenceType
 	RecurrenceConfig *taskdomain.RecurrenceConfig
 }

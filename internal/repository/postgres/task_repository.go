@@ -178,7 +178,7 @@ func scanTask(scanner taskScanner) (*taskdomain.Task, error) {
 		&task.IsRecurrence,
 		&task.RecurrenceParentID,
 		&rt,
-		&task.RecurrenceConfig,
+		&task.RecurrenceConfig, // RecurrenceConfig.Scan()
 		&task.CreatedAt,
 		&task.UpdatedAt,
 	); err != nil {
@@ -187,8 +187,7 @@ func scanTask(scanner taskScanner) (*taskdomain.Task, error) {
 
 	task.Status = taskdomain.Status(status)
 
-	recType := taskdomain.RecurrenceType(rt)
-	task.RecurrenceType = &recType
+	task.RecurrenceType = taskdomain.RecurrenceType(rt)
 
 	return &task, nil
 }

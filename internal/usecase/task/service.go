@@ -120,10 +120,10 @@ func validateCreateInput(input CreateInput) (CreateInput, error) {
 	}
 
 	if input.IsRecurrence {
-		if input.RecurrenceType == nil || input.RecurrenceConfig == nil {
+		if input.RecurrenceType == "" || input.RecurrenceConfig == nil {
 			return CreateInput{}, fmt.Errorf("%w: recurrence_type and recurrence_config are required for recurrence", ErrInvalidInput)
 		}
-		if !input.RecurrenceConfig.Valid(*input.RecurrenceType) {
+		if !input.RecurrenceConfig.Valid(input.RecurrenceType) {
 			return CreateInput{}, fmt.Errorf("%w: invalid recurrence config", ErrInvalidInput)
 		}
 	}
@@ -149,10 +149,10 @@ func validateUpdateInput(input UpdateInput) (UpdateInput, error) {
 	}
 
 	if input.IsRecurrence {
-		if input.RecurrenceType == nil || input.RecurrenceConfig == nil {
+		if input.RecurrenceType == "" || input.RecurrenceConfig == nil {
 			return UpdateInput{}, fmt.Errorf("%w: recurrence_type and recurrence_config are required for recurrence", ErrInvalidInput)
 		}
-		if !input.RecurrenceConfig.Valid(*input.RecurrenceType) {
+		if !input.RecurrenceConfig.Valid(input.RecurrenceType) {
 			return UpdateInput{}, fmt.Errorf("%w: invalid recurrence config", ErrInvalidInput)
 		}
 	}
