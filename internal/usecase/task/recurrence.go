@@ -43,7 +43,7 @@ func calcDaily(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to ti
 	curDate := dueDate
 
 	for !curDate.After(to) {
-		if !curDate.Before(from) && !curDate.After(to) && curDate != dueDate {
+		if !curDate.Before(from) && curDate != dueDate {
 			dates = append(dates, curDate)
 		}
 		curDate = curDate.AddDate(0, 0, rcfg.IntervalDays)
@@ -58,7 +58,7 @@ func calcMonthly(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to 
 	}
 
 	var dates []time.Time
-	year, month := from.Year(), from.Month()
+	year, month := dueDate.Year(), dueDate.Month()
 	endYear, endMonth := to.Year(), to.Month()
 
 	for year < endYear || (year == endYear && month <= endMonth) {
@@ -94,7 +94,7 @@ func calcEvenOdd(cfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to t
 
 	for !curDate.After(to) && curDate != dueDate {
 		curIsEven := curDate.Day()%2 == 0
-		if isEven == curIsEven {
+		if isEven == curIsEven && !curDate.Before(from) {
 			dates = append(dates, curDate)
 		}
 		curDate = curDate.AddDate(0, 0, 1)
