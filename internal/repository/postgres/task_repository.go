@@ -269,6 +269,49 @@ func (r *Repository) batchCreateChunk(ctx context.Context, chunk []*taskdomain.T
 	return err
 }
 
+func (r *Repository) ListByRange(ctx context.Context, from, to time.Time, cursorDate *time.Time, cursorID *int64, limit int) ([]*taskdomain.Task, bool, error) {
+	query := `
+		SELECT id, title, description, status, due_date, is_recurrence,
+           recurrence_parent_id, recurrence_type, recurrence_config,
+           created_at, updated_at
+    FROM tasks
+    WHERE due_date >= $1 AND due_date <= $2
+	`
+
+	var args []any
+	if cursorDate != nil {
+		query += ` AND ((due_date > $3) OR (due_date = $3 AND id < $4))`
+		query += ` ORDER BY due_date ASC, id DESC LIMIT $5`
+		args = []any{from, to, cursorDate, cursorID, limit + 1}
+	} else {
+		query += ` ORDER BY due_date ASC, id DESC LIMIT $3`
+		args = []any{from, to, limit + 1}
+	}
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, false, fmt.Errorf("query tasks: %w", err)
+	}
+	defer rows.Close()
+
+	tasks := make([]*taskdomain.Task, 0, limit)
+	for rows.Next() {
+		t, err := scanTask(rows)
+		if err != nil {
+			return nil, false, err
+		}
+		tasks = append(tasks, t)
+	}
+
+	hasMore := false
+	if len(tasks) > limit {
+		tasks = tasks[:limit]
+		hasMore = true
+	}
+
+	return tasks, hasMore, rows.Err()
+}
+
 type taskScanner interface {
 	Scan(dest ...any) error
 }

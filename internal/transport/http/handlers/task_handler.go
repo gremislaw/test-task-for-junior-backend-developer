@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -106,18 +108,60 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.usecase.List(r.Context())
+	q := r.URL.Query()
+
+	now := time.Now().UTC()
+	from := now
+	to := now.Add(24 * time.Hour)
+
+	if val := q.Get("from"); val != "" {
+		if t, err := time.Parse(time.RFC3339, val); err == nil {
+			from = t
+		}
+	}
+	if val := q.Get("to"); val != "" {
+		if t, err := time.Parse(time.RFC3339, val); err == nil {
+			to = t
+		}
+	}
+
+	var cursorDate *time.Time
+	var cursorID *int64
+	if c := q.Get("cursor"); c != "" {
+		parts := strings.SplitN(c, "_", 2)
+		if len(parts) == 2 {
+			if t, err := time.Parse(time.RFC3339, parts[0]); err == nil {
+				if id, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+					cursorDate = &t
+					cursorID = &id
+				}
+			}
+		}
+	}
+
+	limit := 31
+	if v := q.Get("limit"); v != "" {
+		if l, err := strconv.Atoi(v); err == nil && l > 0 && l <= 100 {
+			limit = l
+		}
+	}
+
+	tasks, nextCursor, err := h.usecase.List(r.Context(), from, to, cursorDate, cursorID, limit)
 	if err != nil {
-		writeUsecaseError(w, err)
+		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	response := make([]taskDTO, 0, len(tasks))
-	for i := range tasks {
-		response = append(response, newTaskDTO(&tasks[i]))
+	respTasks := make([]taskDTO, len(tasks))
+	for i, t := range tasks {
+		respTasks[i] = newTaskDTO(t)
 	}
 
-	writeJSON(w, http.StatusOK, response)
+	writeJSON(w, http.StatusOK, taskListDTO{
+		Tasks:  respTasks,
+		Cursor: nextCursor,
+		Limit:  limit,
+	})
 }
 
 func getIDFromRequest(r *http.Request) (int64, error) {

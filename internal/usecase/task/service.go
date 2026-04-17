@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -94,8 +95,27 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *Service) List(ctx context.Context) ([]taskdomain.Task, error) {
-	return s.repo.List(ctx)
+func (s *Service) List(ctx context.Context, from, to time.Time, cursorDate *time.Time, cursorID *int64, limit int) ([]*taskdomain.Task, string, error) {
+	if _, err := s.Materialize(ctx, from, to); err != nil {
+		slog.Warn("background materialize failed, existing tasks will be served",
+			slog.Time("from", from),
+			slog.Time("to", to),
+			slog.String("error", err.Error()),
+		)
+	}
+
+	tasks, hasMore, err := s.repo.ListByRange(ctx, from, to, cursorDate, cursorID, limit)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: cannot list tasks by range: %w", ErrMaterialize, err)
+	}
+
+	var nextCursor string
+	if hasMore && len(tasks) > 0 {
+		last := tasks[len(tasks)-1]
+		nextCursor = fmt.Sprintf("%s_%d", last.DueDate.Format(time.RFC3339), last.ID)
+	}
+
+	return tasks, nextCursor, nil
 }
 
 func validateCreateInput(input CreateInput) (CreateInput, error) {

@@ -30,6 +30,12 @@ type taskDTO struct {
 	RecurrenceConfig   *taskdomain.RecurrenceConfig `json:"recurrence_config,omitempty"`
 }
 
+type taskListDTO struct {
+	Tasks  []taskDTO `json:"tasks"`
+	Cursor string    `json:"cursor,omitempty"`
+	Limit  int       `json:"limit"`
+}
+
 func newTaskDTO(task *taskdomain.Task) taskDTO {
 	return taskDTO{
 		ID:                 task.ID,
