@@ -20,7 +20,6 @@ type RecurrenceType string
 const (
 	TypeDaily    RecurrenceType = "daily"
 	TypeMonthly  RecurrenceType = "monthly"
-	TypeSpecific RecurrenceType = "specific"
 	TypeEvenOdd  RecurrenceType = "even_odd"
 )
 
@@ -60,29 +59,11 @@ func (rc *RecurrenceConfig) Valid(rt RecurrenceType) bool {
 	}
 
 	switch rt {
-	case TypeDaily:
-		if rc.IntervalDays <= 0 || rc.IntervalDays > 15 {
-			return false
-		}
-	case TypeMonthly, TypeSpecific:
-		if len(rc.DaysOfMonth) == 0 {
-			return false
-		}
-		for _, d := range rc.DaysOfMonth {
-			if d < 1 || d > 28 {
-				return false
-			}
-		}
-	case TypeEvenOdd:
-		if rc.Parity != "even" && rc.Parity != "odd" {
-			return false
-		}
+	case TypeDaily, TypeMonthly, TypeEvenOdd:
+		return true
 	default:
 		return false
 	}
-	return true
-
-	// TODO: залогировать
 }
 
 func (c *RecurrenceConfig) Scan(value any) error {
