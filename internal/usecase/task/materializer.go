@@ -43,17 +43,17 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 				dueDate := d
 				now := s.now()
 				instance := taskdomain.Task{
-            Title:              parent.Title,
-            Description:        parent.Description,
-            Status:             taskdomain.StatusNew,
-            DueDate:            &dueDate,
-            IsRecurrence:       false,
-            RecurrenceParentID: &parent.ID,
-            RecurrenceType:     "",
-            RecurrenceConfig:   nil,
-            CreatedAt:          now,
-            UpdatedAt:          now,
-        }
+					Title:              parent.Title,
+					Description:        parent.Description,
+					Status:             taskdomain.StatusNew,
+					DueDate:            &dueDate,
+					IsRecurrence:       false,
+					RecurrenceParentID: &parent.ID,
+					RecurrenceType:     "",
+					RecurrenceConfig:   nil,
+					CreatedAt:          now,
+					UpdatedAt:          now,
+				}
 				tasks = append(tasks, &instance)
 			}
 		}

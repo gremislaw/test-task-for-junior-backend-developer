@@ -42,7 +42,7 @@ func calcDaily(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.Tim
 	curDate := from
 
 	for !curDate.After(to) {
-		if !curDate.Before(from) && !curDate.After(to){
+		if !curDate.Before(from) && !curDate.After(to) {
 			dates = append(dates, curDate)
 		}
 		curDate = curDate.AddDate(0, 0, rcfg.IntervalDays)
@@ -67,7 +67,7 @@ func calcMonthly(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.T
 			}
 
 			curDate := time.Date(year, month, day, from.Hour(), from.Minute(), 0, 0, time.UTC)
-			
+
 			if !curDate.Before(from) && !curDate.After(to) {
 				dates = append(dates, curDate)
 			}
