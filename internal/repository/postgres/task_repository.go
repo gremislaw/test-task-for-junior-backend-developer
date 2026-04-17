@@ -167,10 +167,10 @@ func (r *Repository) ListRecurrenceParents(ctx context.Context, from, to time.Ti
 		       recurrence_parent_id, recurrence_type, recurrence_config, created_at, updated_at
 		FROM tasks
 		WHERE is_recurrence = true
-		  AND due_date <= $2
+		  AND due_date <= $1
 		ORDER BY id
 	`
-	rows, err := r.pool.Query(ctx, query, from, to)
+	rows, err := r.pool.Query(ctx, query, to)
 	if err != nil {
 		return nil, err
 	}

@@ -20,6 +20,7 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 		dates := CalculateRecurrenceDates(
 			parent.RecurrenceType,
 			parent.RecurrenceConfig,
+			*parent.DueDate,
 			from, to,
 		)
 		if len(dates) == 0 {
@@ -58,7 +59,6 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 			}
 		}
 
-		// Batch insert
 		if len(tasks) > 0 {
 			if err := s.repo.BatchCreate(ctx, tasks); err != nil {
 				return total, fmt.Errorf("%w: batch insert for parent %d: %w", ErrMaterialize, parent.ID, err)

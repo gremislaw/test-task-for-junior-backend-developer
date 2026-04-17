@@ -9,6 +9,7 @@ import (
 func CalculateRecurrenceDates(
 	rt taskdomain.RecurrenceType,
 	rcfg *taskdomain.RecurrenceConfig,
+	dueDate time.Time,
 	from, to time.Time,
 ) []time.Time {
 	if rcfg == nil {
@@ -23,26 +24,26 @@ func CalculateRecurrenceDates(
 
 	switch rt {
 	case taskdomain.TypeDaily:
-		dates = calcDaily(rcfg, from, to)
+		dates = calcDaily(rcfg, dueDate, from, to)
 	case taskdomain.TypeMonthly, taskdomain.TypeSpecific:
-		dates = calcMonthly(rcfg, from, to)
+		dates = calcMonthly(rcfg, dueDate, from, to)
 	case taskdomain.TypeEvenOdd:
-		dates = calcEvenOdd(rcfg, from, to)
+		dates = calcEvenOdd(rcfg, dueDate, from, to)
 	}
 
 	return dates
 }
 
-func calcDaily(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.Time {
+func calcDaily(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to time.Time) []time.Time {
 	if rcfg.IntervalDays <= 0 {
 		return nil
 	}
 
 	var dates []time.Time
-	curDate := from
+	curDate := dueDate
 
 	for !curDate.After(to) {
-		if !curDate.Before(from) && !curDate.After(to) {
+		if !curDate.Before(from) && !curDate.After(to) && curDate != dueDate {
 			dates = append(dates, curDate)
 		}
 		curDate = curDate.AddDate(0, 0, rcfg.IntervalDays)
@@ -51,7 +52,7 @@ func calcDaily(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.Tim
 	return dates
 }
 
-func calcMonthly(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.Time {
+func calcMonthly(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to time.Time) []time.Time {
 	if len(rcfg.DaysOfMonth) == 0 {
 		return nil
 	}
@@ -66,9 +67,9 @@ func calcMonthly(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.T
 				return nil
 			}
 
-			curDate := time.Date(year, month, day, from.Hour(), from.Minute(), 0, 0, time.UTC)
+			curDate := time.Date(year, month, day, dueDate.Hour(), dueDate.Minute(), 0, 0, time.UTC)
 
-			if !curDate.Before(from) && !curDate.After(to) {
+			if !curDate.Before(from) && !curDate.After(to) && curDate != dueDate {
 				dates = append(dates, curDate)
 			}
 		}
@@ -82,16 +83,16 @@ func calcMonthly(rcfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.T
 	return dates
 }
 
-func calcEvenOdd(cfg *taskdomain.RecurrenceConfig, from, to time.Time) []time.Time {
+func calcEvenOdd(cfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to time.Time) []time.Time {
 	if cfg.Parity != "even" && cfg.Parity != "odd" {
 		return nil
 	}
 
 	var dates []time.Time
 	isEven := cfg.Parity == "even"
-	curDate := from
+	curDate := dueDate
 
-	for !curDate.After(to) {
+	for !curDate.After(to) && curDate != dueDate {
 		curIsEven := curDate.Day()%2 == 0
 		if isEven == curIsEven {
 			dates = append(dates, curDate)
