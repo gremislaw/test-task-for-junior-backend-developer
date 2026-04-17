@@ -24,7 +24,7 @@ func CalculateRecurrenceDates(
 	switch rt {
 	case taskdomain.TypeDaily:
 		dates = calcDaily(rcfg, from, to)
-	case taskdomain.TypeMonthly:
+	case taskdomain.TypeMonthly, taskdomain.TypeSpecific:
 		dates = calcMonthly(rcfg, from, to)
 	case taskdomain.TypeEvenOdd:
 		dates = calcEvenOdd(rcfg, from, to)

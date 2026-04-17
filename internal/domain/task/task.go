@@ -20,6 +20,7 @@ type RecurrenceType string
 const (
 	TypeDaily    RecurrenceType = "daily"
 	TypeMonthly  RecurrenceType = "monthly"
+	TypeSpecific RecurrenceType = "specific"
 	TypeEvenOdd  RecurrenceType = "even_odd"
 )
 
@@ -59,11 +60,12 @@ func (rc *RecurrenceConfig) Valid(rt RecurrenceType) bool {
 	}
 
 	switch rt {
-	case TypeDaily, TypeMonthly, TypeEvenOdd:
+	case TypeDaily, TypeMonthly, TypeSpecific, TypeEvenOdd:
 		return true
 	default:
 		return false
 	}
+
 }
 
 func (c *RecurrenceConfig) Scan(value any) error {

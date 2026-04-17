@@ -3,6 +3,9 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -156,6 +159,114 @@ func (r *Repository) List(ctx context.Context) ([]taskdomain.Task, error) {
 	}
 
 	return tasks, nil
+}
+
+func (r *Repository) ListRecurrenceParents(ctx context.Context, from, to time.Time) ([]taskdomain.Task, error) {
+	const query = `
+		SELECT id, title, description, status, due_date, is_recurrence,
+		       recurrence_parent_id, recurrence_type, recurrence_config, created_at, updated_at
+		FROM tasks
+		WHERE is_recurrence = true
+		  AND due_date <= $2
+		ORDER BY id
+	`
+	rows, err := r.pool.Query(ctx, query, from, to)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	parents := make([]taskdomain.Task, 0)
+	for rows.Next() {
+		t, err := scanTask(rows)
+		if err != nil {
+			return nil, err
+		}
+		parents = append(parents, *t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return parents, nil
+}
+
+func (r *Repository) GetRecurrenceInstanceDates(ctx context.Context, parentID int64, from, to time.Time) ([]time.Time, error) {
+	const query = `
+		SELECT due_date FROM tasks
+		WHERE recurrence_parent_id = $1 AND due_date >= $2 AND due_date <= $3
+	`
+	rows, err := r.pool.Query(ctx, query, parentID, from, to)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	dates := make([]time.Time, 0)
+	for rows.Next() {
+		t, err := scanTask(rows)
+		if err != nil {
+			return nil, err
+		}
+		dates = append(dates, *t.DueDate)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return dates, nil
+}
+
+func (r *Repository) BatchCreate(ctx context.Context, tasks []*taskdomain.Task) error {
+	const batchSize = 500
+	for i := 0; i < len(tasks); i += batchSize {
+		end := i + batchSize
+		if end > len(tasks) {
+			end = len(tasks)
+		}
+		if err := r.batchCreateChunk(ctx, tasks[i:end]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *Repository) batchCreateChunk(ctx context.Context, chunk []*taskdomain.Task) error {
+	if len(chunk) == 0 {
+		return nil
+	}
+
+	vals := make([]string, 0, len(chunk))
+	args := make([]any, 0, len(chunk)*10)
+
+	for i, t := range chunk {
+		base := i*10 + 1
+		vals = append(vals, fmt.Sprintf(
+			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+			base, base+1, base+2, base+3, base+4, base+5, base+6, base+7, base+8, base+9,
+		))
+		args = append(args,
+			t.Title, t.Description, t.Status, t.DueDate, t.IsRecurrence,
+			t.RecurrenceParentID, t.RecurrenceType, t.RecurrenceConfig,
+			t.CreatedAt, t.UpdatedAt,
+		)
+	}
+
+	query := fmt.Sprintf(`
+		INSERT INTO tasks (
+			title, description, status, due_date, is_recurrence,
+			recurrence_parent_id, recurrence_type, recurrence_config,
+			created_at, updated_at
+		) VALUES %s
+		ON CONFLICT (recurrence_parent_id, due_date)
+		WHERE recurrence_parent_id IS NOT NULL
+		DO NOTHING
+	`, strings.Join(vals, ","))
+
+	_, err := r.pool.Exec(ctx, query, args...)
+	return err
 }
 
 type taskScanner interface {
