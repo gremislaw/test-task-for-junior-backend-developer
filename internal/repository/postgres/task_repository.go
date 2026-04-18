@@ -123,11 +123,21 @@ func (r *Repository) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
+  if err := r.DeleteInstancesByParent(ctx, id); err != nil {
+    return err
+  }
+
 	if result.RowsAffected() == 0 {
 		return taskdomain.ErrNotFound
 	}
 
 	return nil
+}
+
+func (r *Repository) DeleteInstancesByParent(ctx context.Context, parentID int64) error {
+	const query = `DELETE FROM tasks WHERE recurrence_parent_id = $1`
+  _, err := r.pool.Exec(ctx, query, parentID)
+  return err
 }
 
 func (r *Repository) List(ctx context.Context) ([]taskdomain.Task, error) {
