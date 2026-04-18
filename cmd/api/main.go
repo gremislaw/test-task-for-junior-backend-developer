@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"example.com/taskservice/internal/cron"
 	infrastructurepostgres "example.com/taskservice/internal/infrastructure/postgres"
 	postgresrepo "example.com/taskservice/internal/repository/postgres"
 	transporthttp "example.com/taskservice/internal/transport/http"
@@ -22,6 +23,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
+	slog.SetDefault(logger)
 
 	cfg := loadConfig()
 
@@ -40,6 +42,9 @@ func main() {
 	taskHandler := httphandlers.NewTaskHandler(taskUsecase)
 	docsHandler := swaggerdocs.NewHandler()
 	router := transporthttp.NewRouter(taskHandler, docsHandler)
+
+	var cron cron.Job = cron.New(taskUsecase)
+	go cron.Start(ctx)
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,

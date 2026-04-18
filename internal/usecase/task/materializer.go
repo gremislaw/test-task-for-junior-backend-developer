@@ -3,12 +3,17 @@ package task
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	taskdomain "example.com/taskservice/internal/domain/task"
 )
 
 func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, error) {
+	if to.Sub(from) > 365*24*time.Hour {
+		return 0, fmt.Errorf("materialization range too large (max 365 days)")
+	}
+
 	parents, err := s.repo.ListRecurrenceParents(ctx, from, to)
 	if err != nil {
 		return 0, fmt.Errorf("%w: fetch parents: %w", ErrMaterialize, err)
@@ -29,7 +34,8 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 
 		existing, err := s.repo.GetRecurrenceInstanceDates(ctx, parent.ID, from, to)
 		if err != nil {
-			return 0, fmt.Errorf("%w: fetch existing dates for parent %d: %w", ErrInvalidInput, parent.ID, err)
+			slog.Error("fetch existing instances failed", slog.Int64("id", parent.ID), slog.Any("error", err))
+			continue
 		}
 
 		// дедупликация
@@ -61,7 +67,8 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 
 		if len(tasks) > 0 {
 			if err := s.repo.BatchCreate(ctx, tasks); err != nil {
-				return total, fmt.Errorf("%w: batch insert for parent %d: %w", ErrMaterialize, parent.ID, err)
+				slog.Error("fetch existing instances failed", slog.Int64("id", parent.ID), slog.Any("error", err))
+				continue
 			}
 			total += len(tasks)
 		}

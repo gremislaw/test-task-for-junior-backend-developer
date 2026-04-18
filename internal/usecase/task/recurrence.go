@@ -16,10 +16,6 @@ func CalculateRecurrenceDates(
 		return nil
 	}
 
-	if to.Sub(from) > 365*24*time.Hour {
-		return nil
-	}
-
 	var dates []time.Time
 
 	switch rt {

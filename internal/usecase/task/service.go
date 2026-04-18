@@ -96,13 +96,15 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *Service) List(ctx context.Context, from, to time.Time, cursorDate *time.Time, cursorID *int64, limit int) ([]*taskdomain.Task, string, error) {
-	if _, err := s.Materialize(ctx, from, to); err != nil {
+	created, err := s.Materialize(ctx, from, to)
+	if err != nil {
 		slog.Warn("background materialize failed, existing tasks will be served",
 			slog.Time("from", from),
 			slog.Time("to", to),
 			slog.String("error", err.Error()),
 		)
 	}
+	slog.Info("lazy materialized", slog.Int("count", created))
 
 	tasks, hasMore, err := s.repo.ListByRange(ctx, from, to, cursorDate, cursorID, limit)
 	if err != nil {

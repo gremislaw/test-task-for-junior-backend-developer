@@ -123,9 +123,9 @@ func (r *Repository) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
-  if err := r.DeleteInstancesByParent(ctx, id); err != nil {
-    return err
-  }
+	if err := r.DeleteInstancesByParent(ctx, id); err != nil {
+		return err
+	}
 
 	if result.RowsAffected() == 0 {
 		return taskdomain.ErrNotFound
@@ -136,8 +136,8 @@ func (r *Repository) Delete(ctx context.Context, id int64) error {
 
 func (r *Repository) DeleteInstancesByParent(ctx context.Context, parentID int64) error {
 	const query = `DELETE FROM tasks WHERE recurrence_parent_id = $1`
-  _, err := r.pool.Exec(ctx, query, parentID)
-  return err
+	_, err := r.pool.Exec(ctx, query, parentID)
+	return err
 }
 
 func (r *Repository) List(ctx context.Context) ([]taskdomain.Task, error) {
@@ -215,13 +215,12 @@ func (r *Repository) GetRecurrenceInstanceDates(ctx context.Context, parentID in
 
 	dates := make([]time.Time, 0)
 	for rows.Next() {
-		t, err := scanTask(rows)
-		if err != nil {
+		var d time.Time
+		if err := rows.Scan(&d); err != nil {
 			return nil, err
 		}
-		dates = append(dates, *t.DueDate)
+		dates = append(dates, d)
 	}
-
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
