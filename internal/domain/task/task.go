@@ -25,10 +25,9 @@ const (
 )
 
 type RecurrenceConfig struct {
-	IntervalDays int        `json:"interval_days,omitempty"`
-	DaysOfMonth  []int      `json:"days_of_month,omitempty"`
-	Parity       string     `json:"parity,omitempty"`
-	EndDate      *time.Time `json:"end_date,omitempty"`
+	IntervalDays int    `json:"interval_days,omitempty"`
+	DaysOfMonth  []int  `json:"days_of_month,omitempty"`
+	Parity       string `json:"parity,omitempty"`
 }
 
 type Task struct {

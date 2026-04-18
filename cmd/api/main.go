@@ -12,6 +12,7 @@ import (
 
 	"example.com/taskservice/internal/cron"
 	infrastructurepostgres "example.com/taskservice/internal/infrastructure/postgres"
+	"example.com/taskservice/internal/llm"
 	postgresrepo "example.com/taskservice/internal/repository/postgres"
 	transporthttp "example.com/taskservice/internal/transport/http"
 	swaggerdocs "example.com/taskservice/internal/transport/http/docs"
@@ -37,11 +38,13 @@ func main() {
 	}
 	defer pool.Close()
 
+	llmParser := llm.New()
 	taskRepo := postgresrepo.New(pool)
 	taskUsecase := task.NewService(taskRepo)
 	taskHandler := httphandlers.NewTaskHandler(taskUsecase)
+	parseHandler := httphandlers.NewParseHandler(llmParser, taskUsecase)
 	docsHandler := swaggerdocs.NewHandler()
-	router := transporthttp.NewRouter(taskHandler, docsHandler)
+	router := transporthttp.NewRouter(taskHandler, parseHandler, docsHandler)
 
 	var cron cron.Job = cron.New(taskUsecase)
 	go cron.Start(ctx)

@@ -11,7 +11,7 @@ import (
 
 func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, error) {
 	if to.Sub(from) > 365*24*time.Hour {
-		return 0, fmt.Errorf("materialization range too large (max 365 days)")
+		return 0, ErrRangeTooLarge
 	}
 
 	parents, err := s.repo.ListRecurrenceParents(ctx, from, to)
