@@ -128,7 +128,7 @@ func calcEvenOdd(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to 
 	isEven := rcfg.Parity == "even"
 	curDate := time.Date(from.Year(), from.Month(), from.Day(),
 		dueDate.Hour(), dueDate.Minute(), dueDate.Second(), dueDate.Nanosecond(), time.UTC)
-	
+
 	if (curDate.Day()%2 == 0) != isEven {
 		curDate = curDate.AddDate(0, 0, 1)
 	}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	"example.com/taskservice/internal/observability"
 )
 
 const (
@@ -50,7 +52,7 @@ func (s *Service) RunCleanup(ctx context.Context, cfg CleanupConfig) (int64, err
 		if err != nil {
 			return totalDeleted, fmt.Errorf("%w: %s", ErrDeleteOldInstance, err.Error())
 		}
-		
+
 		slog.Debug("cleanup batch completed", slog.Int64("deleted", deleted))
 
 		if deleted < int64(cfg.BatchSize) {
@@ -64,9 +66,9 @@ func (s *Service) RunCleanup(ctx context.Context, cfg CleanupConfig) (int64, err
 		}
 	}
 
-	if totalDeleted > 0 {
-		slog.Info("cleanup finished", slog.Int64("total_deleted", totalDeleted))
-	}
+	slog.Info("cleanup finished", slog.Int64("total_deleted", totalDeleted))
+	observability.CleanupDeletedTotal.Add(float64(totalDeleted))
+
 	return totalDeleted, nil
-	
+
 }

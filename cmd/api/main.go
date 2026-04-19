@@ -18,6 +18,8 @@ import (
 	swaggerdocs "example.com/taskservice/internal/transport/http/docs"
 	httphandlers "example.com/taskservice/internal/transport/http/handlers"
 	"example.com/taskservice/internal/usecase/task"
+
+	"example.com/taskservice/internal/observability"
 )
 
 func main() {
@@ -46,12 +48,15 @@ func main() {
 	docsHandler := swaggerdocs.NewHandler()
 	router := transporthttp.NewRouter(taskHandler, parseHandler, docsHandler)
 
-	var cron cron.Job = cron.New(taskUsecase)
-	go cron.Start(ctx)
+	observability.Register(router)
+	routerObserv := observability.Middleware(router)
+
+	var cronJob cron.Job = cron.New(taskUsecase)
+	go cronJob.Start(ctx)
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           router,
+		Handler:           routerObserv,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

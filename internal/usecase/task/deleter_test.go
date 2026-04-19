@@ -11,12 +11,12 @@ import (
 
 func TestRunCleanup(t *testing.T) {
 	tests := []struct {
-		name           string
-		batchResults   []int64
-		batchError     error
-		cfg            CleanupConfig
-		wantDeleted    int64
-		wantErr        bool
+		name         string
+		batchResults []int64
+		batchError   error
+		cfg          CleanupConfig
+		wantDeleted  int64
+		wantErr      bool
 	}{
 		{
 			name:         "deletes_in_batches",

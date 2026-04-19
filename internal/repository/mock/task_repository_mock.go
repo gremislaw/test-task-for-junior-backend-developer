@@ -8,16 +8,16 @@ import (
 )
 
 type MockRepository struct {
-	CreateFunc                        func(ctx context.Context, task *taskdomain.Task) (*taskdomain.Task, error)
-	GetByIDFunc                       func(ctx context.Context, id int64) (*taskdomain.Task, error)
-	UpdateFunc                        func(ctx context.Context, task *taskdomain.Task) (*taskdomain.Task, error)
-	DeleteFunc                        func(ctx context.Context, id int64) error
-	ListFunc                          func(ctx context.Context) ([]taskdomain.Task, error)
-	ListByRangeFunc                   func(ctx context.Context, from, to time.Time, cursorDate *time.Time, cursorID *int64, limit int) ([]*taskdomain.Task, bool, error)
-	ListRecurrenceParentsFunc         func(ctx context.Context, from, to time.Time) ([]taskdomain.Task, error)
-	GetRecurrenceInstanceDatesFunc    func(ctx context.Context, parentID int64, from, to time.Time) ([]time.Time, error)
-	BatchCreateFunc                   func(ctx context.Context, tasks []*taskdomain.Task) error
-	DeleteOldInstancesFunc            func(ctx context.Context, olderThan time.Time, limit int) (int64, error)
+	CreateFunc                     func(ctx context.Context, task *taskdomain.Task) (*taskdomain.Task, error)
+	GetByIDFunc                    func(ctx context.Context, id int64) (*taskdomain.Task, error)
+	UpdateFunc                     func(ctx context.Context, task *taskdomain.Task) (*taskdomain.Task, error)
+	DeleteFunc                     func(ctx context.Context, id int64) error
+	ListFunc                       func(ctx context.Context) ([]taskdomain.Task, error)
+	ListByRangeFunc                func(ctx context.Context, from, to time.Time, cursorDate *time.Time, cursorID *int64, limit int) ([]*taskdomain.Task, bool, error)
+	ListRecurrenceParentsFunc      func(ctx context.Context, from, to time.Time) ([]taskdomain.Task, error)
+	GetRecurrenceInstanceDatesFunc func(ctx context.Context, parentID int64, from, to time.Time) ([]time.Time, error)
+	BatchCreateFunc                func(ctx context.Context, tasks []*taskdomain.Task) error
+	DeleteOldInstancesFunc         func(ctx context.Context, olderThan time.Time, limit int) (int64, error)
 }
 
 func (m *MockRepository) Create(ctx context.Context, task *taskdomain.Task) (*taskdomain.Task, error) {

@@ -9,17 +9,17 @@ import (
 type RecurrenceType string
 
 const (
-	TypeDaily    RecurrenceType = "daily"
-	TypeMonthly  RecurrenceType = "monthly"
-	TypeYearly RecurrenceType = "yearly"
-	TypeEvenOdd  RecurrenceType = "even_odd"
+	TypeDaily   RecurrenceType = "daily"
+	TypeMonthly RecurrenceType = "monthly"
+	TypeYearly  RecurrenceType = "yearly"
+	TypeEvenOdd RecurrenceType = "even_odd"
 )
 
 type RecurrenceConfig struct {
-	IntervalDays int    `json:"interval_days,omitempty"`
-	DaysOfMonth  []int  `json:"days_of_month,omitempty"`
-	DatesOfYear []string `json:"dates_of_year,omitempty"`
-	Parity       string `json:"parity,omitempty"`
+	IntervalDays int      `json:"interval_days,omitempty"`
+	DaysOfMonth  []int    `json:"days_of_month,omitempty"`
+	DatesOfYear  []string `json:"dates_of_year,omitempty"`
+	Parity       string   `json:"parity,omitempty"`
 }
 
 func (rc *RecurrenceConfig) Valid(rt RecurrenceType) bool {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	taskdomain "example.com/taskservice/internal/domain/task"
+	"example.com/taskservice/internal/observability"
 )
 
 func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, error) {
@@ -73,6 +74,8 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 			total += len(tasks)
 		}
 	}
+
+	observability.CronMaterializeTotal.Add(float64(total))
 
 	return total, nil
 }

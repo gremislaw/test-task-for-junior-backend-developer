@@ -17,7 +17,7 @@ func TestMaterialize(t *testing.T) {
 	tests := []struct {
 		name           string
 		parents        []taskdomain.Task
-		existingDates  map[int64][]time.Time 
+		existingDates  map[int64][]time.Time
 		batchCreateErr error
 		wantCreated    int
 		wantErr        bool

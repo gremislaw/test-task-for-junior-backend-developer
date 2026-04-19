@@ -37,13 +37,13 @@ func TestCalculateDates(t *testing.T) {
 			from: time.Date(2026, 4, 1, 0, 0, 0, 0, utc), to: time.Date(2026, 5, 1, 0, 0, 0, 0, utc),
 			wantCount: 0},
 
-		{name: "yearly_two_dates", recType: "yearly", 
-			cfg: &taskdomain.RecurrenceConfig{DatesOfYear: []string{"01-15", "05-20"}},
+		{name: "yearly_two_dates", recType: "yearly",
+			cfg:  &taskdomain.RecurrenceConfig{DatesOfYear: []string{"01-15", "05-20"}},
 			from: time.Date(2026, 1, 1, 0, 0, 0, 0, utc), to: time.Date(2027, 12, 31, 0, 0, 0, 0, utc),
 			wantCount: 4, wantFirst: "2026-01-15T10:00:00Z"},
 
-		{name: "yearly_feb29_skip_non_leap", recType: "yearly", 
-			cfg: &taskdomain.RecurrenceConfig{DatesOfYear: []string{"02-29"}},
+		{name: "yearly_feb29_skip_non_leap", recType: "yearly",
+			cfg:  &taskdomain.RecurrenceConfig{DatesOfYear: []string{"02-29"}},
 			from: time.Date(2026, 1, 1, 0, 0, 0, 0, utc), to: time.Date(2028, 12, 31, 0, 0, 0, 0, utc),
 			wantCount: 1},
 		{name: "yearly_invalid_month", recType: "yearly", cfg: &taskdomain.RecurrenceConfig{DatesOfYear: []string{"13-01"}},

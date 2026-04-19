@@ -24,7 +24,7 @@ func New() *Parser {
 		apiKey:  os.Getenv("LLM_API_KEY"),
 		baseURL: os.Getenv("LLM_BASE_URL"),
 		model:   os.Getenv("LLM_MODEL"),
-		client:  &http.Client{Timeout: 30 * time.Second},
+		client:  &http.Client{Timeout: 1 * time.Minute},
 	}
 }
 
