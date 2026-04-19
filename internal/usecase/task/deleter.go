@@ -26,6 +26,10 @@ func LoadCleanupConfig() CleanupConfig {
 }
 
 func (s *Service) RunCleanup(ctx context.Context, cfg CleanupConfig) (int64, error) {
+	if cfg.OlderThan < 0 || cfg.BatchSize <= 0 {
+		return 0, fmt.Errorf("invalid cleanup config: older_than=%d, batch_size=%d", cfg.OlderThan, cfg.BatchSize)
+	}
+
 	cutoff := time.Now().UTC().AddDate(0, 0, -cfg.OlderThan)
 	var totalDeleted int64
 
@@ -35,11 +39,18 @@ func (s *Service) RunCleanup(ctx context.Context, cfg CleanupConfig) (int64, err
 	)
 
 	for {
-		deleted, err := s.repo.DeleteOldInstances(ctx, cutoff, cfg.BatchSize)
-		if err != nil {
-			return totalDeleted, fmt.Errorf("%w: %w", ErrDeleteOldInstance, err)
+		select {
+		case <-ctx.Done():
+			return totalDeleted, ctx.Err()
+		default:
 		}
+
+		deleted, err := s.repo.DeleteOldInstances(ctx, cutoff, cfg.BatchSize)
 		totalDeleted += deleted
+		if err != nil {
+			return totalDeleted, fmt.Errorf("%w: %s", ErrDeleteOldInstance, err.Error())
+		}
+		
 		slog.Debug("cleanup batch completed", slog.Int64("deleted", deleted))
 
 		if deleted < int64(cfg.BatchSize) {
@@ -57,4 +68,5 @@ func (s *Service) RunCleanup(ctx context.Context, cfg CleanupConfig) (int64, err
 		slog.Info("cleanup finished", slog.Int64("total_deleted", totalDeleted))
 	}
 	return totalDeleted, nil
+	
 }

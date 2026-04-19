@@ -59,19 +59,22 @@ func (p *Parser) Parse(ctx context.Context, text string) (*TaskExtraction, error
 			{
 				"role": "system",
 				"content": `Extract task details from Russian free text. Return STRICT JSON:
-{"title": "short actionable title", "description": "full context or details", "due_date": "RFC3339", "recurrence_type": "daily|monthly|even_odd|none", "interval_days": N, "days_of_month": [1,15], "parity": "even|odd"}
+{"title": "short actionable title", "description": "full context or details", "due_date": "RFC3339", "recurrence_type": "daily|monthly|even_odd|yearly|none", "interval_days": N, "days_of_month": [1,15], "parity": "even|odd", "dates_of_year": [{"month":1,"day":15},{"month":5,"day":20}]}
 Examples:
-- "обойти Иванова каждые 3 дня" → {"title": "Обход Иванова", "description": "", "status": "new" "due_date":null, "is_recurrence": true, "recurrence_type":"daily", "interval_days":3, "days_of_month": [], "parity": ""}
-- "визит 10 мая в 14:00" → {"title": "визит", "description": "", "due_date":"2026-05-10T14:00:00Z", "is_recurrence": false, "recurrence_type":"none"}
-- "проверять по нечётным числам и давать анальгин" → {"title": "Проверка", "description": "Дать анальгин", "due_date":"", "is_recurrence": true, "recurrence_type":"even_odd", "interval_days":0, "days_of_month": [], "parity": "odd"}
+- "обойти Иванова каждые 3 дня" - {"title": "Обход Иванова", "description": "", "status": "new" "due_date":null, "is_recurrence": true, "recurrence_type":"daily", "interval_days":3, "days_of_month": [], "parity": ""}
+- "визит 10 мая в 14:00" - {"title": "визит", "description": "", "due_date":"2026-05-10T14:00:00Z", "is_recurrence": false, "recurrence_type":"none"}
+- "проверять по нечётным числам и давать анальгин" - {"title": "Проверка", "description": "Дать анальгин", "due_date":"", "is_recurrence": true, "recurrence_type":"even_odd", "interval_days":0, "days_of_month": [], "parity": "odd"}
+- "Делать сикс-севен каждого 6 марта и 7 апреля" - {"title": "Сикс-севен", "description": "", "due_date":"", "is_recurrence": true, "recurrence_type":"yearly", "interval_days":0, "days_of_month": [], "parity": "", dates_of_year:[]}
 RULES:
 - Title: max 50 chars, imperative mood (e.g., "Обход Иванова"). If u see abbreviatures like "МРТ" dont change it just copy to title
 - Description: more than 50 chars. its about what doctor will do in details (e.g., "Дать лекарство", "Поменять белье", "Вколоть обезбол")
 - Due date: when it should be done, maybe its time when recurrence starts, parse if explicit ("завтра в 14:00", "после 10 мая 2026"), else "".
 - Recurrence: extract ONLY if explicit.
-	1. daily -> change interval_days (e.g. "каждые 3 дня", "еженедельно", "ежедневно", "каждый день", "каждые 2 недели"). Use only if its about interval between recurrence tasks
-	2. monthly -> change days_of_month (e.g. "каждый 3, 7 день месяца", "каждого 1 числа", "раз в месяц"). if days of month not given just use today. Use if havent some interval with every creating recurrence task
-	3. even_odd -> change parity (e.g. "каждый четный день", "в нечетные дни", "по четным числам"). Only if have words that confirms parity
+	1. daily -> change only interval_days (e.g. "каждые 3 дня", "еженедельно", "ежедневно", "каждый день", "каждые 2 недели", "раз в полгода" - daily with interval_days=180 (approx)). Use only if its about interval between recurrence tasks. Nothing about month or dates. Nothing about even_odd
+	2. monthly -> change only days_of_month (e.g. "каждый 3, 7 день месяца", "каждого 1 числа", "раз в месяц"). if days of month not given just use today. Use if no name or number of month, only day of month. Use if havent some interval with every creating recurrence task. Nothing about even_odd
+	3. even_odd -> change only parity (e.g. "каждый четный день", "в нечетные дни", "по четным числам"). Only if have words that confirms parity, no month, no number
+	4. yearly -> change only dates_of_year ("каждого 15 января и 20 мая" - yearly with 2 dates, "1 января каждого года"). Only if have day + month
+
 - NO markdown, NO explanations, ONLY valid JSON.`,
 			},
 			{"role": "user", "content": text},

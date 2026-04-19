@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_due_date_id ON tasks (due_date ASC, id ASC);

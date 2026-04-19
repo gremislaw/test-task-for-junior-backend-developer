@@ -1,6 +1,8 @@
 package task
 
 import (
+	"strconv"
+	"strings"
 	"time"
 
 	taskdomain "example.com/taskservice/internal/domain/task"
@@ -21,8 +23,10 @@ func CalculateRecurrenceDates(
 	switch rt {
 	case taskdomain.TypeDaily:
 		dates = calcDaily(rcfg, dueDate, from, to)
-	case taskdomain.TypeMonthly, taskdomain.TypeSpecific:
+	case taskdomain.TypeMonthly:
 		dates = calcMonthly(rcfg, dueDate, from, to)
+	case taskdomain.TypeYearly:
+		dates = calcYearly(rcfg, dueDate, from, to)
 	case taskdomain.TypeEvenOdd:
 		dates = calcEvenOdd(rcfg, dueDate, from, to)
 	}
@@ -79,21 +83,59 @@ func calcMonthly(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to 
 	return dates
 }
 
-func calcEvenOdd(cfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to time.Time) []time.Time {
-	if cfg.Parity != "even" && cfg.Parity != "odd" {
+func calcYearly(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to time.Time) []time.Time {
+	if len(rcfg.DatesOfYear) == 0 {
 		return nil
 	}
 
 	var dates []time.Time
-	isEven := cfg.Parity == "even"
-	curDate := dueDate
+	startYear := from.Year()
+	endYear := to.Year()
 
-	for !curDate.After(to) && curDate != dueDate {
-		curIsEven := curDate.Day()%2 == 0
-		if isEven == curIsEven && !curDate.Before(from) {
-			dates = append(dates, curDate)
+	for year := startYear; year <= endYear; year++ {
+		for _, md := range rcfg.DatesOfYear {
+			parts := strings.Split(md, "-")
+			if len(parts) != 2 {
+				continue
+			}
+			m, errM := strconv.Atoi(parts[0])
+			d, errD := strconv.Atoi(parts[1])
+			if errM != nil || errD != nil || m < 1 || m > 12 || d < 1 || d > 31 {
+				continue
+			}
+
+			candidate := time.Date(year, time.Month(m), d,
+				dueDate.Hour(), dueDate.Minute(), dueDate.Second(), dueDate.Nanosecond(), time.UTC)
+
+			if candidate.Month() != time.Month(m) {
+				continue
+			}
+
+			if !candidate.Before(from) && !candidate.After(to) {
+				dates = append(dates, candidate)
+			}
 		}
+	}
+	return dates
+}
+
+func calcEvenOdd(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to time.Time) []time.Time {
+	if rcfg.Parity != "even" && rcfg.Parity != "odd" {
+		return nil
+	}
+
+	var dates []time.Time
+	isEven := rcfg.Parity == "even"
+	curDate := time.Date(from.Year(), from.Month(), from.Day(),
+		dueDate.Hour(), dueDate.Minute(), dueDate.Second(), dueDate.Nanosecond(), time.UTC)
+	
+	if (curDate.Day()%2 == 0) != isEven {
 		curDate = curDate.AddDate(0, 0, 1)
+	}
+
+	for !curDate.After(to) {
+		dates = append(dates, curDate)
+		curDate = curDate.AddDate(0, 0, 2)
 	}
 
 	return dates

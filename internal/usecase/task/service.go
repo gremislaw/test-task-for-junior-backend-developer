@@ -22,6 +22,10 @@ func NewService(repo Repository) *Service {
 	}
 }
 
+func (s *Service) SetNow(fn func() time.Time) {
+	s.now = fn
+}
+
 func (s *Service) Create(ctx context.Context, input CreateInput) (*taskdomain.Task, error) {
 	normalized, err := validateCreateInput(input)
 	if err != nil {
