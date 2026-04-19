@@ -67,19 +67,46 @@ func (s *Service) Update(ctx context.Context, id int64, input UpdateInput) (*tas
 		return nil, err
 	}
 
-	model := &taskdomain.Task{
-		ID:               id,
-		Title:            normalized.Title,
-		Description:      normalized.Description,
-		Status:           normalized.Status,
-		DueDate:          normalized.DueDate,
-		IsRecurrence:     normalized.IsRecurrence,
-		RecurrenceType:   normalized.RecurrenceType,
-		RecurrenceConfig: normalized.RecurrenceConfig,
-		UpdatedAt:        s.now(),
+	existing, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
-	updated, err := s.repo.Update(ctx, model)
+	if existing.RecurrenceParentID != nil {
+		if input.IsRecurrence {
+			return nil, ErrInstanceCannotBeTemplate
+		}
+		if input.RecurrenceType != "" || input.RecurrenceConfig != nil {
+			return nil, ErrInstanceFieldsImmutable
+		}
+	}
+
+	if normalized.Title != "" {
+		existing.Title = normalized.Title
+	}
+	if normalized.Description != "" {
+		existing.Description = normalized.Description
+	}
+	if normalized.Status != "" {
+		existing.Status = normalized.Status
+	}
+	if normalized.DueDate != nil {
+		existing.DueDate = normalized.DueDate
+	}
+
+	if normalized.RecurrenceType != "" {
+		existing.RecurrenceType = normalized.RecurrenceType
+	}
+	if normalized.RecurrenceConfig != nil {
+		existing.RecurrenceConfig = normalized.RecurrenceConfig
+	}
+	if normalized.IsRecurrence {
+		existing.IsRecurrence = normalized.IsRecurrence
+	}
+
+	existing.UpdatedAt = s.now()
+
+	updated, err := s.repo.Update(ctx, existing)
 	if err != nil {
 		return nil, err
 	}

@@ -52,7 +52,5 @@ func (c *Cron) run(ctx context.Context) {
 		slog.Error(ErrMaterializeFailed.Error(), slog.Any("error", ErrMaterializeFailed))
 		return
 	}
-	if created > 0 {
-		slog.Info("cron materialized", slog.Int("count", created))
-	}
+	slog.Info("cron materialized", slog.Int("count", created))
 }

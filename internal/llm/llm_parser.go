@@ -49,8 +49,8 @@ func (p *Parser) Parse(ctx context.Context, text string) (*TaskExtraction, error
 
 	t := time.Now()
 	s := fmt.Sprintf("Сегодня %d-%02d-%02d %02d:%02d:%02d",
-    t.Year(), t.Month(), t.Day(),
-    t.Hour(), t.Minute(), t.Second())
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second())
 
 	payload := map[string]any{
 		"model": p.model,
@@ -69,9 +69,9 @@ RULES:
 - Description: more than 50 chars. its about what doctor will do in details (e.g., "Дать лекарство", "Поменять белье", "Вколоть обезбол")
 - Due date: when it should be done, maybe its time when recurrence starts, parse if explicit ("завтра в 14:00", "после 10 мая 2026"), else "".
 - Recurrence: extract ONLY if explicit.
-	1. daily -> change interval_days (e.g. "каждые 3 дня", "еженедельно", "ежедневно", "каждый день", "каждые 2 недели")
-	2. monthly -> change days_of_month (e.g. "каждый 3, 7 день месяца", "каждого 1 числа", "раз в месяц"). if days of month not given just use today
-	3. even_odd -> change parity (e.g. "каждый четный день", "в нечетные дни", "по четным числам")
+	1. daily -> change interval_days (e.g. "каждые 3 дня", "еженедельно", "ежедневно", "каждый день", "каждые 2 недели"). Use only if its about interval between recurrence tasks
+	2. monthly -> change days_of_month (e.g. "каждый 3, 7 день месяца", "каждого 1 числа", "раз в месяц"). if days of month not given just use today. Use if havent some interval with every creating recurrence task
+	3. even_odd -> change parity (e.g. "каждый четный день", "в нечетные дни", "по четным числам"). Only if have words that confirms parity
 - NO markdown, NO explanations, ONLY valid JSON.`,
 			},
 			{"role": "user", "content": text},

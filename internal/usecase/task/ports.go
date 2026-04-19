@@ -17,6 +17,7 @@ type Repository interface {
 	ListRecurrenceParents(ctx context.Context, from, to time.Time) ([]taskdomain.Task, error)
 	GetRecurrenceInstanceDates(ctx context.Context, parentID int64, from, to time.Time) ([]time.Time, error)
 	BatchCreate(ctx context.Context, tasks []*taskdomain.Task) error
+	DeleteOldInstances(ctx context.Context, olderThan time.Time, limit int) (int64, error)
 }
 
 type Usecase interface {

@@ -321,6 +321,29 @@ func (r *Repository) ListByRange(ctx context.Context, from, to time.Time, cursor
 	return tasks, hasMore, rows.Err()
 }
 
+func (r *Repository) DeleteOldInstances(ctx context.Context, olderThan time.Time, limit int) (int64, error) {
+	query := `
+      DELETE FROM tasks 
+      WHERE id IN (
+          SELECT id FROM tasks 
+          WHERE status = $1
+            AND due_date < $2
+            AND (recurrence_parent_id IS NOT NULL OR is_recurrence = false)
+          ORDER BY due_date 
+          LIMIT $3
+        )
+    `
+	tag, err := r.pool.Exec(ctx, query,
+		taskdomain.StatusNew,
+		olderThan,
+		limit,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("delete old: %w", err)
+	}
+	return tag.RowsAffected(), nil
+}
+
 type taskScanner interface {
 	Scan(dest ...any) error
 }
