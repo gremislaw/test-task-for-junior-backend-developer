@@ -1,5 +1,5 @@
 [![Go Version](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white)](https://go.dev)
-[![CI/CD](https://github.com/gremislaw/taskservice/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/yourusername/taskservice/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/gremislaw/test-task-for-junior-backend-developer/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/yourusername/taskservice/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/example.com/taskservice)](https://goreportcard.com/report/example.com/taskservice)
 
 
