@@ -30,10 +30,10 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 		parent := p
 		g.Go(func() error {
 			dates := CalculateRecurrenceDates(
-			parent.RecurrenceType,
-			parent.RecurrenceConfig,
-			*parent.DueDate,
-			from, to,
+				parent.RecurrenceType,
+				parent.RecurrenceConfig,
+				*parent.DueDate,
+				from, to,
 			)
 			if len(dates) == 0 {
 				return nil

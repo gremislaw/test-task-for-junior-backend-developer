@@ -10,8 +10,8 @@ import (
 )
 
 type CleanupRunner struct {
-	uc       taskusecase.Service
-	mu       sync.Mutex
+	uc taskusecase.Service
+	mu sync.Mutex
 }
 
 func NewCleanupRunner(uc taskusecase.Service) *CleanupRunner {
