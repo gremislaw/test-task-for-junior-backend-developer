@@ -26,6 +26,9 @@ docker compose up --build
 
 Причина в том, что SQL-файл из `migrations/0001_create_tasks.up.sql` монтируется в `docker-entrypoint-initdb.d` и применяется только при инициализации пустого data volume.
 
+## CI/CD
+GitHub Actions: `lint` - `race` - `test` - `build` на каждый push в `develop`
+
 ## Swagger
 
 Swagger UI:
@@ -153,6 +156,7 @@ GET /api/v1/tasks?from=...&to=...&limit=...&cursor=...
 
 ## Принятые решения и ограничения
 
+- Concurrency `errgroup` в материализации тасков, lock-free счётчики, изоляция ошибок родителей.
 - Одна таблица `tasks`. Шаблоны и экземпляры хранятся вместе, различаются по полям `is_recurrence` и `recurrence_parent_id`. Это упрощает выборку, обновление и удаление.
 - Лимит диапазона `365` дней. Защита от случайных или злонамеренных запросов на годы вперёд.
 - Защита от дублей. Уникальный индекс `(recurrence_parent_id, due_date) + ON CONFLICT DO NOTHING` гарантирует, что рестарт сервиса или параллельные запросы не создадут дубликаты.
@@ -177,7 +181,6 @@ GET /api/v1/tasks?from=...&to=...&limit=...&cursor=...
 - [ ] Rate limiting & IP throttling для публичных эндпоинтов
 
 ### DevOps
-- [ ] CI/CD пайплайн (GitHub Actions: `lint` - `test` - `build` - `push` - `deploy`)
 - [ ] Интеграционные тесты через Testcontainers (PostgreSQL + Ollama без ручного `docker compose`)
 
 ### LLM

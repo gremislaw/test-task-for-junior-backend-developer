@@ -11,7 +11,6 @@ import (
 
 type CleanupRunner struct {
 	uc       taskusecase.Service
-	interval time.Duration
 	mu       sync.Mutex
 }
 
