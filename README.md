@@ -28,6 +28,20 @@ docker compose up --build
 
 ## CI/CD
 GitHub Actions: `lint` - `race` - `test` - `build` на каждый push в `develop`
+```python
+    A[Push/PR] --> B[quality]
+    A --> C[test]
+    B --> D  # Все зелёные?
+    C --> D
+    D -->|Yes | E[docker: build & push]
+    D -->|No | F[Fail]
+```
+
+| **quality** | - стиль кода, потенциальные баги. `golangci-lint`, `gosec`
+
+| **test** | - прогонка тестов. `go test -race -cover`.
+
+| **docker** | - сборка образа, кэширование слоёв, мультиарх. `buildx`, `cache gha`, `linux/amd64,arm64`
 
 ## Swagger
 
@@ -98,6 +112,16 @@ http://localhost:8080/swagger/openapi.json
   "status": "new",
   "due_date": "2026-04-18T20:00:00Z"
 }
+```
+
+## Тестирование
+
+```bash
+# Запустить smoke-тесты
+./test.sh
+
+# Юнит-тесты
+go test ./... -v
 ```
 
 ---
@@ -192,16 +216,6 @@ GET /api/v1/tasks?from=...&to=...&limit=...&cursor=...
 - Расширенная фильтрация `GET /tasks`
 - Поддержка пользовательских временных зон
 
-
-## Тестирование
-
-```bash
-# Запустить smoke-тесты
-./test.sh
-
-# Юнит-тесты
-go test ./... -v
-```
 
 `50%` тестовое покрытие сервиса
 

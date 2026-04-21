@@ -21,14 +21,37 @@
       "get": {
         "tags": ["Tasks"],
         "summary": "List tasks",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Pagination cursor: <timestamp>_<id>, e.g. 2026-04-18T10:00:00Z_42",
+            "schema": { "type": "string" }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Task list",
+            "description": "Task list with cursor pagination",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": { "$ref": "#/components/schemas/Task" }
+                  "type": "object",
+                  "properties": {
+                    "tasks": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Task" }
+                    },
+                    "next_cursor": {
+                    "type": ["string", "null"],
+                    "description": "Cursor for next page, null if last page",
+                    "example": "2026-04-20T10:00:00Z_123"
+                    }
+                  }
                 }
               }
             }
@@ -131,6 +154,54 @@
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
+    },
+    "/api/v1/tasks/parse-recurrence": {
+      "post": {
+        "tags": ["Tasks"],
+        "summary": "Create task from natural language",
+        "description": "Extracts recurrence pattern from Russian text using LLM",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "example": "обойти Иванова каждые 3 дня в 10:00"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parsed task created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus metrics endpoint",
+        "responses": {
+          "200": {
+            "description": "Plain text metrics",
+            "content": {
+              "text/plain": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -169,6 +240,27 @@
             "type": "string",
             "enum": ["new", "in_progress", "done"],
             "example": "new"
+          },
+          "due_date": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Optional deadline for the task",
+            "example": "2026-04-20T10:00:00Z"
+          },
+          "is_recurrence": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, this is a recurrence template"
+          },
+          "recurrence_type": {
+            "type": ["string", "null"],
+            "enum": ["daily", "monthly", "yearly", "even_odd"],
+            "description": "Recurrence pattern type (only for templates)"
+          },
+          "recurrence_config": {
+            "type": ["object", "null"],
+            "description": "Recurrence settings (JSONB)",
+            "example": { "interval_days": 3 }
           }
         }
       },
@@ -188,6 +280,27 @@
             "type": "string",
             "enum": ["new", "in_progress", "done"],
             "example": "in_progress"
+          },
+          "due_date": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Optional deadline for the task",
+            "example": "2026-04-20T10:00:00Z"
+          },
+          "is_recurrence": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, this is a recurrence template"
+          },
+          "recurrence_type": {
+            "type": ["string", "null"],
+            "enum": ["daily", "monthly", "yearly", "even_odd"],
+            "description": "Recurrence pattern type (only for templates)"
+          },
+          "recurrence_config": {
+            "type": ["object", "null"],
+            "description": "Recurrence settings (JSONB)",
+            "example": { "interval_days": 3 }
           }
         }
       },
@@ -204,6 +317,32 @@
             "type": "string",
             "enum": ["new", "in_progress", "done"],
             "example": "new"
+          },
+          "due_date": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Optional deadline for the task",
+            "example": "2026-04-20T10:00:00Z"
+          },
+          "is_recurrence": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, this is a recurrence template"
+          },
+          "recurrence_type": {
+            "type": ["string", "null"],
+            "enum": ["daily", "monthly", "yearly", "even_odd"],
+            "description": "Recurrence pattern type (only for templates)"
+          },
+          "recurrence_config": {
+            "type": ["object", "null"],
+            "description": "Recurrence settings (JSONB)",
+            "example": { "interval_days": 3 }
+          },
+          "recurrence_parent_id": {
+            "type": ["integer", "null"],
+            "format": "int64",
+            "description": "ID of parent template (only for instances)"
           },
           "created_at": {
             "type": "string",
