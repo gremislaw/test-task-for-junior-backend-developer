@@ -141,9 +141,10 @@ func calcEvenOdd(rcfg *taskdomain.RecurrenceConfig, dueDate time.Time, from, to 
 	return dates
 }
 
-
 func FilterExcluded(dates []time.Time, excluded []time.Time) []time.Time {
-	if len(excluded) == 0 { return dates }
+	if len(excluded) == 0 {
+		return dates
+	}
 	exclSet := make(map[string]struct{}, len(excluded))
 	for _, t := range excluded {
 		exclSet[t.Format(time.RFC3339)] = struct{}{}

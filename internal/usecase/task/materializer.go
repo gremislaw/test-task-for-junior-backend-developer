@@ -41,7 +41,6 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 			if len(dates) == 0 {
 				return nil
 			}
-			
 
 			existing, err := s.repo.GetRecurrenceInstanceDates(gCtx, parent.ID, from, to)
 			if err != nil {

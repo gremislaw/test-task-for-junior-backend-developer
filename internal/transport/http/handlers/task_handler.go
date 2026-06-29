@@ -166,10 +166,16 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 
 func (h *TaskHandler) Detach(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
-	if err != nil { writeError(w, 400, errs.ErrInvalidID); return }
+	if err != nil {
+		writeError(w, 400, errs.ErrInvalidID)
+		return
+	}
 
 	detached, err := h.taskService.DetachInstance(r.Context(), id)
-	if err != nil { writeError(w, 400, err.Error()); return }
+	if err != nil {
+		writeError(w, 400, err.Error())
+		return
+	}
 
 	writeJSON(w, http.StatusOK, detached)
 }

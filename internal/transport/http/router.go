@@ -24,7 +24,6 @@ func NewRouter(taskHandler *httphandlers.TaskHandler, tagHandler *httphandlers.T
 	api.HandleFunc("/tasks/{id:[0-9]+}", taskHandler.Update).Methods(http.MethodPut)
 	api.HandleFunc("/tasks/{id:[0-9]+}", taskHandler.Delete).Methods(http.MethodDelete)
 	api.HandleFunc("/tasks/{id:[0-9]+}/detach", taskHandler.Detach).Methods(http.MethodPost)
-)
 
 	api.HandleFunc("/tasks/parse-recurrence", parseHandler.Serve).Methods(http.MethodPost)
 

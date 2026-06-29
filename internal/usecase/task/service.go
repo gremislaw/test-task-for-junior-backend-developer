@@ -153,13 +153,17 @@ func (s *Service) List(ctx context.Context, from, to time.Time, cursorDate *time
 
 func (s *Service) DetachInstance(ctx context.Context, instanceID int64) (*taskdomain.Task, error) {
 	inst, err := s.repo.GetByID(ctx, instanceID)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	if inst.RecurrenceParentID == nil {
 		return nil, errs.ErrCannotDetachNonInstance
 	}
 
 	parent, err := s.repo.GetByID(ctx, *inst.RecurrenceParentID)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	if parent.RecurrenceConfig == nil {
 		parent.RecurrenceConfig = &taskdomain.RecurrenceConfig{}
@@ -167,7 +171,9 @@ func (s *Service) DetachInstance(ctx context.Context, instanceID int64) (*taskdo
 	parent.RecurrenceConfig.ExcludedDates = append(
 		parent.RecurrenceConfig.ExcludedDates, *inst.DueDate,
 	)
-	if err := s.repo.Update(ctx, parent); err != nil { return nil, err }
+	if err := s.repo.Update(ctx, parent); err != nil {
+		return nil, err
+	}
 
 	inst.RecurrenceParentID = nil
 	inst.IsRecurrence = false
