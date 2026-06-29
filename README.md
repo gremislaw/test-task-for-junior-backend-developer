@@ -95,8 +95,8 @@ http://localhost:8080/swagger/openapi.json
 # Теги и перенос задач
 
 ## Теги
-- Хранятся в PostgreSQL как `TEXT[]` с `GIN`-индексом → фильтрация `WHERE tags && ARRAY['urgent', 'surgery']` выполняется за O(log N).
-- Добавление/удаление атомарно через `array_append`/`array_remove`, конфликты обрабатываются на уровне `UPDATE ... RETURNING`.
+- Junction-таблица `task_tags(task_id, tag_id)` с жёсткими `FK` и `ON DELETE CASCADE`.
+- Составной B-tree индекс `(tag_id, task_id)` обеспечивает `Index Only Scan` при фильтрации и JOIN.
 - LLM-парсер автоматически извлекает теги из контекста: `"обход палаты, срочно, кардиология"` → `tags: ["urgent", "cardiology"]`.
 
 ## Перенос задач
