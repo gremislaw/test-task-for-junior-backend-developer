@@ -9,7 +9,7 @@ import (
 	httphandlers "example.com/taskservice/internal/transport/http/handlers"
 )
 
-func NewRouter(taskHandler *httphandlers.TaskHandler, parseHandler *httphandlers.ParseHandler, docsHandler *swaggerdocs.Handler) *mux.Router {
+func NewRouter(taskHandler *httphandlers.TaskHandler, tagHandler *httphandlers.TagHandler, parseHandler *httphandlers.ParseHandler, docsHandler *swaggerdocs.Handler) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/swagger/openapi.json", docsHandler.ServeSpec).Methods(http.MethodGet)
@@ -23,8 +23,15 @@ func NewRouter(taskHandler *httphandlers.TaskHandler, parseHandler *httphandlers
 	api.HandleFunc("/tasks/{id:[0-9]+}", taskHandler.GetByID).Methods(http.MethodGet)
 	api.HandleFunc("/tasks/{id:[0-9]+}", taskHandler.Update).Methods(http.MethodPut)
 	api.HandleFunc("/tasks/{id:[0-9]+}", taskHandler.Delete).Methods(http.MethodDelete)
+	api.HandleFunc("/tasks/{id:[0-9]+}/detach", taskHandler.Detach).Methods(http.MethodPost)
+)
 
 	api.HandleFunc("/tasks/parse-recurrence", parseHandler.Serve).Methods(http.MethodPost)
+
+	api.HandleFunc("/tags", tagHandler.Create).Methods(http.MethodPost)
+	api.HandleFunc("/tags/{id}", tagHandler.Delete).Methods(http.MethodDelete)
+	api.HandleFunc("/tasks/{id}/tags", tagHandler.AssignToTask).Methods(http.MethodPost)
+	api.HandleFunc("/tasks/{id}/tags", tagHandler.RemoveFromTask).Methods(http.MethodDelete)
 
 	return router
 }

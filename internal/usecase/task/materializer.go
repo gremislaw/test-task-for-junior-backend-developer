@@ -35,9 +35,13 @@ func (s *Service) Materialize(ctx context.Context, from, to time.Time) (int, err
 				*parent.DueDate,
 				from, to,
 			)
+			if parent.RecurrenceConfig != nil && len(parent.RecurrenceConfig.ExcludedDates) > 0 {
+				dates = filterExcluded(dates, parent.RecurrenceConfig.ExcludedDates)
+			}
 			if len(dates) == 0 {
 				return nil
 			}
+			
 
 			existing, err := s.repo.GetRecurrenceInstanceDates(gCtx, parent.ID, from, to)
 			if err != nil {

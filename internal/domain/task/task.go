@@ -18,6 +18,7 @@ type Task struct {
 	Description        string            `json:"description"`
 	Status             Status            `json:"status"`
 	DueDate            *time.Time        `json:"due_date"`
+	Tags               []Tag             `json:"tags,omitempty"`
 	IsRecurrence       bool              `json:"is_recurrence"`
 	RecurrenceParentID *int64            `json:"recurrence_parent_id,omitempty"`
 	RecurrenceType     RecurrenceType    `json:"recurrence_type,omitempty"`

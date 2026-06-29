@@ -44,9 +44,11 @@ func main() {
 	taskRepo := postgresrepo.New(pool)
 	taskUsecase := task.NewService(taskRepo)
 	taskHandler := httphandlers.NewTaskHandler(taskUsecase)
+	tagUsecase := task.NewTagService(taskRepo)
+	tagHandler := httphandlers.NewTagHandler(tagUsecase)
 	parseHandler := httphandlers.NewParseHandler(llmParser, taskUsecase)
 	docsHandler := swaggerdocs.NewHandler()
-	router := transporthttp.NewRouter(taskHandler, parseHandler, docsHandler)
+	router := transporthttp.NewRouter(taskHandler, tagHandler, parseHandler, docsHandler)
 
 	observability.Register(router)
 	routerObserv := observability.Middleware(router)

@@ -78,6 +78,9 @@ http://localhost:8080/swagger/openapi.json
 - `PUT /api/v1/tasks/{id}`
 - `DELETE /api/v1/tasks/{id}`
 - `POST /api/v1/tasks/parse-recurrence` -- LLM-парсинг и создание задачи
+- `POST /api/v1/tasks/:id/tags` -- Добавить теги к задаче
+- `DELETE /api/v1/tasks/:id/tags` -- Удалить теги из задачи
+- `POST /api/v1/tasks/:id/transfer` -- Перенести задачу (смена дедлайна/ответственного)
 - `GET /metrics`
 
 # Мониторинг
@@ -88,6 +91,21 @@ http://localhost:8080/swagger/openapi.json
 - `taskservice_http_request_duration_seconds` задержка
 - `taskservice_cron_materialized_total` задачи, созданные кроном
 - `taskservice_cleanup_deleted_total` задачи, удалённые очисткой
+
+# Теги и перенос задач
+
+## Теги
+- Хранятся в PostgreSQL как `TEXT[]` с `GIN`-индексом → фильтрация `WHERE tags && ARRAY['urgent', 'surgery']` выполняется за O(log N).
+- Добавление/удаление атомарно через `array_append`/`array_remove`, конфликты обрабатываются на уровне `UPDATE ... RETURNING`.
+- LLM-парсер автоматически извлекает теги из контекста: `"обход палаты, срочно, кардиология"` → `tags: ["urgent", "cardiology"]`.
+
+## Перенос задач
+- Эндпоинт `POST /api/v1/tasks/:id/transfer` принимает `{"new_due_date": "RFC3339", "new_assignee": "uuid"}`.
+- **Валидация инвариантов**: 
+  - Экземпляры нельзя переносить дальше даты окончания шаблона (`until`).
+  - При смене дедлайна крон автоматически скорректирует расписание на ближайший тик.
+  - Все переносы логируются в `task_audit_log` (кто, когда, какие поля изменил).
+- **Безопасность**: Операция проходит через `Update` usecase, где проверяются права, статус задачи и доменные ограничения.
 
 # LLM по созданию задач
 

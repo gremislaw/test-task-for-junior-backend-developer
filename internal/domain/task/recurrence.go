@@ -16,10 +16,11 @@ const (
 )
 
 type RecurrenceConfig struct {
-	IntervalDays int      `json:"interval_days,omitempty"`
-	DaysOfMonth  []int    `json:"days_of_month,omitempty"`
-	DatesOfYear  []string `json:"dates_of_year,omitempty"`
-	Parity       string   `json:"parity,omitempty"`
+	IntervalDays   *int       `json:"interval_days,omitempty"`
+	DaysOfMonth    []int      `json:"days_of_month,omitempty"`
+	DatesOfYear    []string   `json:"dates_of_year,omitempty"`
+	Parity         string     `json:"parity,omitempty"`
+	ExcludedDates  []time.Time `json:"excluded_dates,omitempty"`
 }
 
 func (rc *RecurrenceConfig) Valid(rt RecurrenceType) bool {

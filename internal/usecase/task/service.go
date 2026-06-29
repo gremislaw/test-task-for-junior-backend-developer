@@ -151,6 +151,33 @@ func (s *Service) List(ctx context.Context, from, to time.Time, cursorDate *time
 	return tasks, nextCursor, nil
 }
 
+func (s *Service) DetachInstance(ctx context.Context, instanceID int64) (*taskdomain.Task, error) {
+	inst, err := s.repo.GetByID(ctx, instanceID)
+	if err != nil { return nil, err }
+	if inst.RecurrenceParentID == nil {
+		return nil, errs.ErrCannotDetachNonInstance
+	}
+
+	parent, err := s.repo.GetByID(ctx, *inst.RecurrenceParentID)
+	if err != nil { return nil, err }
+
+	if parent.RecurrenceConfig == nil {
+		parent.RecurrenceConfig = &taskdomain.RecurrenceConfig{}
+	}
+	parent.RecurrenceConfig.ExcludedDates = append(
+		parent.RecurrenceConfig.ExcludedDates, *inst.DueDate,
+	)
+	if err := s.repo.Update(ctx, parent); err != nil { return nil, err }
+
+	inst.RecurrenceParentID = nil
+	inst.IsRecurrence = false
+	inst.RecurrenceType = ""
+	inst.RecurrenceConfig = nil
+	inst.UpdatedAt = s.now()
+
+	return s.repo.Update(ctx, inst)
+}
+
 func validateCreateInput(input CreateInput) (CreateInput, error) {
 	input.Title = strings.TrimSpace(input.Title)
 	input.Description = strings.TrimSpace(input.Description)
